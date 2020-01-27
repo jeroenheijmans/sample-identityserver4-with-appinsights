@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            let capturedAccessToken = "not captured yet...";
+
+            async function apiGet(route, token) {
+                const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+                const response = await fetch(route, { headers });
+                if (response.status >= 400) { return `Response status ${response.status}`; }
+                const json = await response.json();
+                return JSON.stringify(json, null, 2);
+            }
+
+            async function getTokenResponse(secret) {
+                const response = await fetch("/connect/token", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    },
+                    body: new URLSearchParams({
+                        "grant_type": "client_credentials",
+                        "client_id": "b2bclient",
+                        "client_secret": secret,
+                    }),
+                });
+
+                const json = await response.json();
+
+                if (!!json.access_token) { capturedAccessToken = json.access_token; }
+
+                return JSON.stringify(json, null, 2);
+            }
+
+            const el = id => document.getElementById(id);
+
+            el("btnRightly").addEventListener("click", async () => el("data").value = await getTokenResponse("b2bsecret"));
+            el("btnWrongly").addEventListener("click", async () => el("data").value = await getTokenResponse("gibberish"));
+
+            el("unprotected").addEventListener("click", async () => el("data").value = await apiGet("foo/"));
+            el("protected").addEventListener("click", async () => el("data").value = await apiGet("foo/protected", capturedAccessToken));
+        });
+    </script>
+</head>
+<body style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif">
+    <h1>Test page</h1>
+    <p>Page best viewed with developer console open.</p>
+    <p>
+        Client Credentials =>
+        <button id="btnRightly">Ask for a token in a valid way</button>
+        <button id="btnWrongly">Force error by asking for a token incorrectly</button>
+    </p>
+    <p>
+        Foo API =>
+        <button id="unprotected">Call unprotected endpoint</button>
+        <button id="protected">Call protected endpoint</button>
+    </p>
+    <textarea id="data" style="width: 100%; height: 15em;"></textarea>
+</body>
+</html>
