@@ -1,13 +1,27 @@
 using IdentityServer4.Models;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SampleAppInsightsIdentity
 {
     public class Startup
     {
+        private readonly IConfiguration configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
+            // Needed to get options other than InstrumentationKey from appsettings, see also: https://github.com/microsoft/ApplicationInsights-dotnet/issues/1448#issuecomment-276574251
+            services.Configure<ApplicationInsightsServiceOptions>(configuration.GetSection("ApplicationInsights"));
+            
+            services.AddApplicationInsightsTelemetry();
+
             services.AddIdentityServer()
                 .AddInMemoryApiResources(new[] { new ApiResource("foo-api") })
                 .AddInMemoryClients(new[]
@@ -34,7 +48,6 @@ namespace SampleAppInsightsIdentity
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDeveloperExceptionPage();
             app.UseHttpsRedirection();
             app.UseIdentityServer();
             app.UseRouting();

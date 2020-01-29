@@ -39,6 +39,9 @@
             el("btnWrongly").addEventListener("click", async () => el("data").value = await getTokenResponse("gibberish"));
 
             el("unprotected").addEventListener("click", async () => el("data").value = await apiGet("foo/"));
+            el("forced-error").addEventListener("click", async () => el("data").value = await apiGet("foo/error"));
+            el("log-warning").addEventListener("click", async () => el("data").value = await apiGet("foo/log-warning"));
+            el("log-error").addEventListener("click", async () => el("data").value = await apiGet("foo/log-error"));
             el("protected").addEventListener("click", async () => el("data").value = await apiGet("foo/protected", capturedAccessToken));
         });
     </script>
@@ -55,6 +58,9 @@
         Foo API =>
         <button id="unprotected">Call unprotected endpoint</button>
         <button id="protected">Call protected endpoint</button>
+        <button id="forced-error">Force 500 error on unprotected endpoint</button>
+        <button id="log-warning">Force logging of a warning</button>
+        <button id="log-error">Force logging of an error</button>
     </p>
     <textarea id="data" style="width: 100%; height: 15em;"></textarea>
 </body>
